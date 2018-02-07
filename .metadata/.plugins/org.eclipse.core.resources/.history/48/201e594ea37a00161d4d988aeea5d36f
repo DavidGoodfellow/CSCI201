@@ -1,0 +1,182 @@
+package client;
+
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.Socket;
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SpringLayout.Constraints;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+
+public class FactoryClientGUI extends JFrame {
+	
+	public static final long serialVersionUID = 1;
+	
+	private FactoryPanel factoryPanel;
+	private FactoryManager factoryManager;
+
+	private JTextArea messageTextArea;
+	private JTable productTable;
+	private DefaultTableModel productTableModel;
+	private JScrollPane tableScrollPane;
+	private JSlider simulationSpeedController;
+	
+	private FactoryController factoryController;
+	
+	FactoryClientGUI(Socket socket){
+		super(Constants.factoryGUITitleString);
+		factoryManager = new FactoryManager();
+		initializeVariables();
+		createGUI();
+		new FactoryClientListener(factoryManager, this, socket);
+		addActionAdapters();
+		setLocationRelativeTo(null);
+		setVisible(true);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		//put in constructor?
+		createMenu();
+	}
+	
+	private void initializeVariables() {
+		messageTextArea = new JTextArea(10, 50);
+		factoryPanel = new FactoryPanel();
+		factoryManager.setFactoryRenderer(factoryPanel);
+		
+		productTableModel = new DefaultTableModel(null, Constants.tableColumnNames);
+		productTable = new JTable(productTableModel);
+		productTable.setEnabled(false);
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(productTableModel);
+		productTable.setRowSorter(sorter);
+		tableScrollPane = new JScrollPane(productTable);
+		tableScrollPane.setBounds(Constants.factoryGUIwidth - Constants.tableWidth - 10, 0, Constants.tableWidth, Constants.factoryGUIheight - 100);
+		
+		simulationSpeedController = new JSlider(JSlider.HORIZONTAL,Constants.simulation_0x, Constants.simulation_3x, Constants.simulation_1x);
+		simulationSpeedController.addChangeListener(factoryManager);
+		simulationSpeedController.setMajorTickSpacing(1);
+		simulationSpeedController.setMinorTickSpacing(1);
+		simulationSpeedController.setPaintTicks(true);
+		
+		factoryController = new FactoryController();
+	}
+	
+	private void createGUI() {
+		setSize(Constants.factoryGUIwidth, Constants.factoryGUIheight);
+		setLayout(new BorderLayout());
+		JScrollPane messageTextAreaScrollPane = new JScrollPane(messageTextArea);
+		
+		Box bottomBox = Box.createHorizontalBox();
+		bottomBox.add(messageTextAreaScrollPane);
+		//bottomBox.add(simulationSpeedController);
+		
+		add(factoryPanel,BorderLayout.CENTER);
+		add(bottomBox, BorderLayout.SOUTH);
+		add(tableScrollPane,BorderLayout.EAST);
+	}
+	
+	public JTable getTable() {
+		return productTable;
+	}
+	
+	private void addActionAdapters() {
+		addWindowListener(new WindowAdapter() {
+			  public void windowClosing(WindowEvent we) {
+				  System.exit(0);
+			  }
+		});
+	}
+	
+	public void addMessage(String msg) {
+		if (messageTextArea.getText().length() != 0) {
+			messageTextArea.append("\n");
+		}
+		messageTextArea.append(msg);
+	}
+	
+	private void createMenu(){
+		JMenuBar menu = new JMenuBar();
+		JMenuItem controller = new JMenuItem("Controller");
+		controller.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0){
+				factoryController.setVisible(true);
+			}
+		});
+		menu.add(controller);
+		setJMenuBar(menu);
+	}
+	
+	class FactoryController extends JFrame{
+		private static final long serioalVersionUID = 7573324399771995953L;
+		private Dictionary<Integer, JLabel> labelTable;
+		private JPanel buttonBox;
+		private GridBagConstraints gbc;
+		private JButton pauseButton, continueButton, resetButton;
+		private JTabbedPane tabbedPane;
+		
+		
+		public FactoryController(){
+			super("Factory Controller");
+			setSize(320,240);
+			add(simulationSpeedController);
+			setVisible(false);
+			setLocationRelativeTo(null);
+			
+			labelTable = new Hashtable<Integer, JLabel>();
+			dictionarySetUp();
+			
+			buttonBox = new JPanel();
+			buttonBox.setLayout(new GridBagLayout());
+			gbc = new GridBagConstraints();
+			pauseButton = new JButton("Pause");
+			continueButton = new JButton("Continue");
+			resetButton = new JButton("Reset");
+			gridSetUp();
+			
+		}
+		private void dictionarySetUp(){
+			labelTable.put(Constants.simulation_0x, new JLabel("Paused"));
+			labelTable.put(Constants.simulation_1x, new JLabel("Normal"));
+			labelTable.put(Constants.simulation_2x, new JLabel("Double"));
+			labelTable.put(Constants.simulation_3x, new JLabel("Triple"));
+			
+			simulationSpeedController.setLabelTable(labelTable);
+			simulationSpeedController.setPaintLabels(true);
+			
+			simulationSpeedController.setBorder(new TitledBorder("Speed Controller"));
+			add(simulationSpeedController, BorderLayout.SOUTH);
+		}
+		private void gridSetUp(){
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weighty = 1;
+			
+			gbc.gridy = 1;
+			buttonBox.add(pauseButton,  gbc);
+			gbc.gridy = 2;
+			buttonBox.add(continueButton, gbc);
+			gbc.gridy = 3;
+			buttonBox.add(resetButton, gbc);
+			add(buttonBox);
+		}
+	}
+	
+}

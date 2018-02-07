@@ -1,0 +1,24 @@
+package model;
+
+import java.sql.Connection;
+import java.util.ArrayList;
+
+import dao.Database;
+//import dao.Project;
+//import dto.FeedObjects;
+
+public class FeedManager {
+	public ArrayList<feedobjects> GetFeeds()throws Exception {
+		ArrayList<feedobjects> feeds = null;
+		try {
+			Database database= new Database();
+			Connection connection = database.getConnection();
+			//Project project= new Project();
+			//feeds=project.GetFeeds(connection);
+		}
+		catch (Exception e) {
+			throw e;
+		}
+		return feeds;
+	}
+}

@@ -1,0 +1,49 @@
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTree;
+public class blah extends JFrame {
+ /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+public blah() {
+super("CSCI 201 Midterm");
+setLayout(new BorderLayout());
+JTabbedPane tabbedPane = new JTabbedPane();
+JPanel firstPanel = new JPanel();
+firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.Y_AXIS));
+JCheckBox jcb1 = new JCheckBox("Box 1");
+JCheckBox jcb2 = new JCheckBox("Box 2");
+JCheckBox jcb3 = new JCheckBox("Box 3");
+JPanel innerPanel = new JPanel();
+innerPanel.setLayout(new GridLayout(1, 2));
+String [] data = {"103", "104", "201", "301", "477"};
+JTree tree = new JTree(data);
+tree.setRootVisible(true);
+innerPanel.add(tree);
+JButton jb = new JButton("Update");
+innerPanel.add(jb);
+firstPanel.add(jcb1);
+firstPanel.add(jcb2);
+firstPanel.add(jcb3);
+firstPanel.add(innerPanel);
+JPanel secondPanel = new JPanel();
+JPanel thirdPanel = new JPanel();
+tabbedPane.add("#1", firstPanel);
+tabbedPane.add("#2", secondPanel);
+tabbedPane.add("#3", thirdPanel);
+add(tabbedPane);
+setSize(500, 550);
+setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+setVisible(true);
+}
+public static void main(String[] args ) {
+new blah();
+}
+}

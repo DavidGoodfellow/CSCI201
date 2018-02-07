@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="ExternalProjectImportWizard">
+		<item value="true" key="WizardProjectsImportPage.STORE_NESTED_PROJECTS"/>
+		<item value="true" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
+		<item value="true" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
+		<list key="WizardProjectsImportPage.STORE_DIRECTORIES">
+			<item value=""/>
+		</list>
+		<list key="WizardProjectsImportPage.STORE_ARCHIVES">
+			<item value="/Users/davidgoodfellow/Downloads/Lab6_WithExpansion.zip"/>
+			<item value="/Users/davidgoodfellow/Downloads/Lab13_NoExpansion.zip"/>
+			<item value="/Users/davidgoodfellow/Downloads/Assignment4Solution.zip"/>
+			<item value="/Users/davidgoodfellow/Downloads/dgoodfel_assignment#3.zip"/>
+			<item value="/Users/davidgoodfellow/Downloads/Assignment3Solution.zip"/>
+		</list>
+	</section>
+</section>

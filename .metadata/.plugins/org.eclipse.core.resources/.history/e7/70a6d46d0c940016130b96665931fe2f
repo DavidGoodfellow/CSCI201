@@ -1,0 +1,214 @@
+package frames;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
+import game_logic.GameData;
+import game_logic.TeamData;
+import listeners.ExitWindowListener;
+import other_gui.AppearanceConstants;
+import other_gui.AppearanceSettings;
+
+public class WinnersGUI extends JFrame{
+
+	private JLabel andTheWinnersAre, ratingLabel, current, please, winnersL;
+	//private JTextPane winners;
+	private JPanel ratingLabelPanel, centerPanel, centerC, sliderP;
+	private GameData gameData;
+	private JButton okay;
+	private JSlider rating;
+	
+	public WinnersGUI(GameData gameData){
+		
+		this.gameData = gameData;
+		initializeComponents();
+		createGUI();
+		addListeners();
+	}
+	
+	//private methods
+	private void initializeComponents(){
+		andTheWinnersAre = new JLabel("");
+		//winners = new JTextPane();
+		winnersL = new JLabel("");
+		okay = new JButton("Okay");
+		rating = new JSlider();
+		sliderP = new JPanel();
+		ratingLabel = new JLabel("3");
+		ratingLabelPanel = new JPanel();//used for gray background
+		centerPanel = new JPanel();
+		centerC = new JPanel();
+		current = new JLabel("current average rating: " + Integer.toString(gameData.getRating()) + "/5");
+		please = new JLabel("Please rate this game file on a scale from 1 to 5");
+	}
+	
+	private void createGUI(){
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		JPanel northPanel = new JPanel();
+		
+		centerPanel.setLayout(new BorderLayout());
+		centerC.setLayout(new BoxLayout(centerC, BoxLayout.Y_AXIS));
+		
+		AppearanceSettings.setBackground(Color.darkGray, ratingLabel, ratingLabelPanel);
+		ratingLabel.setForeground(Color.WHITE);
+		AppearanceSettings.setBackground(AppearanceConstants.lightBlue, sliderP, andTheWinnersAre, mainPanel, centerPanel, centerC);
+		AppearanceSettings.setFont(AppearanceConstants.fontMedium, okay, andTheWinnersAre);
+		AppearanceSettings.setFont(AppearanceConstants.fontSmall, current, please);
+		
+		AppearanceSettings.setSize(500, 90, rating);
+		//AppearanceSettings.setMinTickSliders(1, rating);
+		AppearanceSettings.setSliders(1, 5, 3, 1, AppearanceConstants.fontSmall, rating);
+		
+		/*winners.setEditable(false);
+		//centers the text
+		//sourced from: http://stackoverflow.com/questions/3213045/centering-text-in-a-jtextarea-or-jtextpane-horizontal-text-alignment
+		StyledDocument doc = winners.getStyledDocument();
+		SimpleAttributeSet center = new SimpleAttributeSet();
+		StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+		doc.setParagraphAttributes(0, doc.getLength(), center, false);*/
+		
+		winnersL.setFont(AppearanceConstants.fontLarge);
+		winnersL.setBackground(Color.gray);
+		winnersL.setBorder(new EmptyBorder(0,0,15,0));
+		
+		//winners.setFont(AppearanceConstants.fontLarge);
+		//winners.setBackground(Color.gray);
+		okay.setBackground(Color.gray);
+		okay.setForeground(AppearanceConstants.darkBlue);
+		
+		northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.PAGE_AXIS));
+		
+		List<TeamData> winnersList = gameData.getFinalistsAndEliminatedTeams().getWinners();
+		//no winners
+		if (winnersList.size() == 0){
+			andTheWinnersAre.setText("Sad!");
+			winnersL.setText("There were no winners!");
+		}
+		//at least 1 winner
+		else{
+			String winnersAre = winnersList.size() == 1 ? "And the winner is..." : "And the winners are...";
+			
+			String winnersAre2 = winnersList.get(0).getTeamName();
+			
+			for (int i = 1; i<winnersList.size(); i++){
+				winnersAre2 = winnersAre2 + " and " + winnersList.get(i).getTeamName();
+			}
+			
+			andTheWinnersAre.setText(winnersAre);
+			winnersL.setText(winnersAre2);
+		}
+		centerC.add(please);
+		sliderP.setLayout(new BoxLayout(sliderP, BoxLayout.X_AXIS));
+		sliderP.setPreferredSize(new Dimension(this.getWidth(), 100));
+		ratingLabelPanel.setPreferredSize(new Dimension(20,20));
+		sliderP.add(rating);
+		ratingLabelPanel.add(ratingLabel);
+		sliderP.add(ratingLabelPanel);
+		centerC.add(sliderP);
+		winnersL.setHorizontalAlignment(JLabel.CENTER);
+		centerC.add(current);
+		
+		winnersL.setHorizontalAlignment(JLabel.CENTER);
+		centerPanel.add(winnersL, BorderLayout.NORTH);
+		centerPanel.add(centerC, BorderLayout.CENTER);
+		centerPanel.setBorder(new EmptyBorder(0,0,20,0));
+		
+		andTheWinnersAre.setHorizontalAlignment((int)this.CENTER_ALIGNMENT);
+		andTheWinnersAre.setBorder(new EmptyBorder(10,0,10,0));
+		mainPanel.add(andTheWinnersAre, BorderLayout.NORTH);
+		mainPanel.add(centerPanel, BorderLayout.CENTER);
+		mainPanel.add(okay, BorderLayout.SOUTH);
+		
+		setSize(300, 300);
+		add(mainPanel, BorderLayout.CENTER);
+	}
+	
+	private void changeRatings() throws IOException{
+		
+	    List<String> lines = new ArrayList<String>();
+
+	    // read the file into lines
+	    BufferedReader r = new BufferedReader(new FileReader(gameData.getFileName()));
+	    String in;
+	    while ((in = r.readLine()) != null)
+	        lines.add(in);
+	    r.close();
+
+	    // delete last two lines
+	    lines.remove(lines.size() - 1);
+	    lines.remove(lines.size() - 1);
+	      
+	    // write back everything but last two lines    
+	    FileWriter fw = new FileWriter(gameData.getFileName());
+		BufferedWriter bw = new BufferedWriter(fw);
+		for (String line : lines)
+	        bw.write(line + "\n");
+		
+		//change ratings
+		int numReplace = gameData.getNumberOfRaters() + 1;
+		int sumTotal = gameData.getTotalRating() + rating.getValue();
+		bw.write(numReplace + "\n" + sumTotal + "\n");
+		bw.close();
+	    
+	}
+	
+	private void addListeners(){
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		addWindowListener(new ExitWindowListener(this));
+		
+		okay.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rating.getValue();
+			
+				try {
+					changeRatings();
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				
+				dispose();
+			}
+			
+		});
+		
+		rating.addChangeListener(new ChangeListener(){
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				ratingLabel.setText(Integer.toString(rating.getValue()));
+			}
+		});
+	
+	}
+}

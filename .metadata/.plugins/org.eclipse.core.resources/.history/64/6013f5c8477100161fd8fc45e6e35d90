@@ -1,0 +1,369 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.*;
+import java.util.List;
+
+public class GameShow {
+	
+	//VARIABLES
+	private GameSystem game;
+	private List<Player> players;
+	private Scanner s;
+	
+	//CONSTRUCTOR
+	public GameShow(){
+		game = new GameSystem();
+		players = new ArrayList<Player>();
+		s = new Scanner(System.in);
+	}
+	
+	public static boolean isNumeric(String str)  
+	{  
+	  try  
+	  {  
+	    Double.parseDouble(str);
+	  }  
+	  catch(NumberFormatException nfe)  
+	  {  
+	    return false;  
+	  }  
+	  return true;  
+	}
+	
+	//GAMEPLAY
+	public void play(){
+		
+		
+		//PLAYERS HAVE BEEN INITIALIZED
+		System.out.println("Setting up the game for you...");
+		System.out.println("Ready to Play!");
+		
+		//----------------------------------------
+		// CLEARING PREVIOUS DATA
+		//----------------------------------------
+		for(int i = 0; i < players.size(); i++){
+			players.get(i).setPoints(0);
+		}
+		game.restart();
+		
+		
+		//------------------------------------------
+		//           REGULAR  TURNS
+		//------------------------------------------
+		
+		int playerNum = 0;
+		while(game.isComplete() == false){
+			System.out.println("It is " + players.get(playerNum).getName() + " turn to choose a question!");
+			System.out.println("Please choose a category.");
+			
+			String str1 = s.nextLine();
+			if(str1.equals("exit"))
+				return;
+			else if(str1.equals("replay")){
+				play();
+				return;
+			}	
+			
+			int c = game.chooseCategory(str1);
+			while(c == -1){
+				System.out.println("This category does not exist, please choose another.");
+				String str2 = s.nextLine();
+				if(str2.equals("exit"))
+					return;
+				else if(str2.equals("replay")){
+					play();
+					return;
+				}
+				c = game.chooseCategory(str2);
+			}
+			System.out.println("Please choose a dollar value for the question.");
+			String str3 = s.nextLine();
+			if(str3.equals("exit"))
+				return;
+			if(str3.equals("replay")){
+				play();
+				return;
+			}
+			int r = -1;
+			if(isNumeric(str3) == true){
+				r = game.chooseValue(Integer.parseInt(str3));
+			}
+			
+			while(r == -1){
+				System.out.println("This dollar value does not exist, please choose another.");
+				str3 = s.nextLine();
+				if(str3.equals("exit"))
+					return;
+				if(str3.equals("replay")){
+					play();
+					return;
+				}
+				r = game.chooseValue(Integer.parseInt(str3));
+			}
+			String rc = Integer.toString(r) + Integer.toString(c);
+			if(game.isFlipped(rc) == true){
+				System.out.println("Tile is already played, restarting your turn...");
+				continue;
+			}
+			//question is valid, running it now
+			game.question(rc);
+			String strA = s.nextLine();
+			if(strA.equals("exit"))
+				return;
+			if(strA.equals("replay")){
+				play();
+				return;
+			}
+			if(game.answer(rc, strA)){
+				//NEED TO CHANGE FROM R
+				players.get(playerNum).addPoints(Integer.parseInt(str3));
+			}
+			else{
+				players.get(playerNum).minusPoints(Integer.parseInt(str3));
+			}
+			game.flip(rc);
+			
+			//outputting the updated point values of all players after turn
+			System.out.println("----------PLAYER SCORES----------");
+			for(int k = 0; k < players.size(); k++){
+				System.out.println(players.get(k).getName() + ": " + players.get(k).getPoints());
+			}
+			System.out.println("---------------------------------");
+			
+			//if last player, go bak to the first team's turn
+			playerNum++;
+			if(playerNum == players.size()){
+				playerNum = 0;
+			}
+		}
+		
+		//-----------------------------------------
+		// FINAL Q & END OF GAME
+		//-----------------------------------------
+		
+		//getting all of the bets
+		System.out.println("Now that all the questions have been chosen, it's time for Final Jeopardy!");
+
+		for(int x = 0; x < players.size(); x++){
+			System.out.println("Team " + players.get(x).getName() + ", please give a dollar amount from your total that would like to bet");
+			boolean okay = false;
+			while(okay != true){
+				String str = s.nextLine();
+				if(str == "exit")
+					return;
+				if(str == "restart"){
+					play();
+					return;
+				}
+				int bet = Integer.parseInt(str);
+				if(players.get(x).getPoints() < 1){
+					System.out.println("Since you have no money, your bet will be 0.");
+					players.get(x).finalBet = 0;
+				}
+				
+				else if(bet < 1){
+					System.out.println("You must place a bet of at least $1. Please enter your new bet.");
+					continue;
+				}
+				else if(bet > players.get(x).getPoints()){
+					System.out.println("Your bet cannot be more than what money you have available. Please enter your new bet.");
+					continue;
+				}
+				else{
+					players.get(x).finalBet = bet;
+				}
+			}
+			
+		}//bets recorded
+		
+		//answering the question
+		System.out.println("The question is: ");
+		game.finalQ();
+		List<Integer> correctAnswers = new ArrayList<Integer>();
+		for(int x = 0; x < players.size(); x++){
+			System.out.println("Team " + players.get(x).getName() + ", please enter your answer.");
+			
+			String str2 = s.nextLine();
+			if(str2 == "exit")
+				return;
+			if(str2 == "restart"){
+				play();
+				return;
+			}
+			
+			if(game.answer("FJ",str2) == true){
+				players.get(x).addPoints(players.get(x).finalBet);
+				correctAnswers.add(x);
+			}
+			else{
+				players.get(x).minusPoints(players.get(x).finalBet);
+			}
+		}
+		//showing who got the question right
+		System.out.println("The following players got the final question correct: ");
+		for(int y = 0; y < correctAnswers.size(); y++){
+			System.out.println(players.get(correctAnswers.get(y)).getName());
+		}
+		//announcing the winner of the game
+		int pointsMax = players.get(0).getPoints();
+		int winner = 0;
+		for(int x=1; x < players.size(); x++){
+			if(players.get(x).getPoints() > pointsMax){
+				pointsMax = players.get(x).getPoints();
+				winner = x;
+			}
+		}
+		System.out.println("The winning team is Team " + players.get(winner).getName());
+		
+	}
+	
+	public boolean parse(){
+		try {
+			//where to close it?
+			BufferedReader br = new BufferedReader(new FileReader("gameFile.txt"));
+			
+			//starting with categories
+			String firstLine = br.readLine();
+			String[] categories = new String[5];
+			categories = firstLine.split("::");
+			if(categories.length != 5){
+				br.close();
+				System.out.println("Error: Wrong amount of categories.");
+				throw new IOException();
+			}
+			
+			for(int i = 0; i < categories.length; i++){
+				if(game.addCategory(categories[i], i) == false){
+					System.out.println("Error: Duplicate categories.");
+					br.close();
+					throw new IOException();
+				}
+				
+			}
+	
+			//streaming in values
+			String  str = br.readLine();
+			String values[] = str.split("::");
+			if(values.length != 5){
+				System.out.println("Error: Wrong amount of values.");
+				br.close();
+				throw new IOException();
+			}
+			
+			for(int i = 0; i < values.length; i++){
+				//System.out.println(values[i]);
+				if(game.addValue(Integer.parseInt(values[i]), i) == false){
+					System.out.println("Error: Duplicate Values.");
+					br.close();
+					throw new IOException();
+				}
+			}
+			
+			//deal with the questions
+			int count = 3;
+			
+			String line1 = br.readLine();
+			while(line1 != null){
+				br.mark(300);
+				String line2 = br.readLine();
+				if(line2 != null){
+					if(line2.startsWith("::")){
+						br.reset();
+					}
+					else{
+						line1 = line1 + line2;
+					}
+				}
+
+				if(line1.startsWith("::") == true){
+					if(game.questionInput(line1) == false){
+						br.close();
+						throw new IOException();
+					}
+				}
+				else{
+					System.out.println("Line " + count + " should start with ::");
+				}
+				count++;
+				line1 = br.readLine();
+			}
+			br.close();
+			
+			if(game.getQCount() != 26){
+				System.out.println("Error: Not exactly 26 questions.");
+				throw new IOException();
+			}
+			else if(game.inlcudedFQ() == false){
+				System.out.println("Error: No final question is included");
+				throw new IOException();
+			}
+			else if(game.fiveAndFive() == false){
+				System.out.println("Error: There should be five questions in five different categories.");
+				throw new IOException();
+			}
+			
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			
+			return false;
+		}
+		
+	}
+	
+	public void startingSeq(){
+		System.out.println("Welcome to Jeopardy!");
+		System.out.println("Please enter the number of teams that will play");
+		
+		int numberOfTeams = Integer.parseInt(s.nextLine());
+		while(numberOfTeams < 1 || numberOfTeams > 4){
+			System.out.println("Invalid entry; Please try again.");
+			numberOfTeams = Integer.parseInt(s.nextLine());
+		}
+				
+		//naming teams
+		System.out.println("Please choose a name for Team " + 1);
+		String str = s.nextLine();
+		Player p1 = new Player(str);
+		players.add(p1);
+				
+		int i = 1; 
+		while(i < numberOfTeams){
+			System.out.println("Please choose a name for Team " + (i + 1));
+			//how to name them all differently in a while loop?????
+			str = s.nextLine();
+			for(int j = 0; j < players.size(); j++){
+				while(str.equals(players.get(j).getName()) == true){
+					System.out.println("Please choose a different name from all other teams.");
+					System.out.println("Please choose a name for Team " + (i + 1));
+					str = s.nextLine();
+				}
+			}
+			Player p2 = new Player(str);
+			players.add(p2);
+			i++;
+		}
+		
+	}
+	
+	public void closeScanners(){
+		s.close();
+		game.closeScanner();
+	}
+
+	//MAIN METHOD USED FOR STREAMING
+	public static void main(String []args){
+		
+		GameShow m = new GameShow();//review this!
+		boolean b = m.parse();
+		if(b == true){
+			m.startingSeq();//attains the players and beginning properties for replay
+			m.play();//playing the game
+		}	
+		m.closeScanners();
+		
+	}
+	
+}

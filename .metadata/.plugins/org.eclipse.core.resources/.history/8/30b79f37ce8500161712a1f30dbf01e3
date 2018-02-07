@@ -1,0 +1,41 @@
+package client;
+
+import java.awt.Font;
+import java.awt.Graphics;
+
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.table.TableModel;
+
+public class FactoryProgressPanel extends JPanel {
+	private static final long serialVersionUID = -3875529770801377779L;
+	private final String title = "Factory Progress";
+	private JTable mTable;
+	private TableModel mModel;
+	private final int border = 20;
+	
+	FactoryProgressPanel(JTable inTable){
+		mTable = inTable;
+		mModel = mTable.getModel();
+		
+	}
+	
+	protected void paintComponent(Graphics g){
+		super.paintComponent(g);
+		int w = this.getWidth();
+		int h = this.getHeight();
+		Font font = new Font("Times New Roman", Font.BOLD | Font.ITALIC, w/24);
+		g.setFont(font);
+		int strwidth = g.getFontMetrics(font).stringWidth(title);
+		g.drawString(title, (w-strwidth)/2, g.getFontMetrics(font).getHeight());
+		
+		double total = 0;
+		double started = 0;
+		double completed = 0;
+		for(int i = 0; i < mModel.getRowCount(); ++i){
+			total += (int)mModel.getValueAt(i, Constants.totalNameIndex);
+			started += (int)mModel.getValueAt(i, Constants.startedIndex);
+			completed += (int)mModel.getValueAt(i, Constants.completedIndex);
+		}
+	}
+}

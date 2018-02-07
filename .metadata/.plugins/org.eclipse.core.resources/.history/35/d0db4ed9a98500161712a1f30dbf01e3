@@ -1,0 +1,16 @@
+package client;
+
+import javax.swing.JPanel;
+import javax.swing.JTable;
+
+public class FactoryProgressPanel extends JPanel {
+	private static final long serialVersionUID = -3875529770801377779L;
+	
+	private JTable mTable;
+	private TableModel mModel;
+	
+	FactoryProgressPanel(JTable inTable){
+		mTable = inTable;
+		mModel = mTable.getModel();
+	}
+}

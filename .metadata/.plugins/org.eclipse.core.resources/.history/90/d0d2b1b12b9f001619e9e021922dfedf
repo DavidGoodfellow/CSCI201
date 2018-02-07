@@ -1,0 +1,12 @@
+package model;
+
+import java.sql.Connection;
+import java.util.ArrayList;
+
+import dao.Database;
+//import dao.Project;
+//import dto.FeedObjects;
+
+public class FeedManager {
+
+}

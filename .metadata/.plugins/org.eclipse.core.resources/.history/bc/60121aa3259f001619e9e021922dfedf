@@ -1,0 +1,6 @@
+package Server;
+
+//used to create an encapsulated way to connect to our db
+public class Database {
+
+}

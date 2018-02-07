@@ -1,0 +1,40 @@
+package webService;
+
+import java.util.ArrayList;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
+//import model.FeedManager
+import com.google.gson.Gson;
+import dto.CategoryFeed;
+//import dto.ItemFeed
+//import dto.UserFeed
+import model.FeedManager;
+
+@Path("/WebService")
+public class FeedService {
+	@GET
+	@Path("/GetCategories")
+	@Produces("application/json")
+	public String feedCategories(){
+		String feed = null;
+		try 
+		{
+			//System.out.println("Success");
+			ArrayList<CategoryFeed> feedData = null;
+			FeedManager projectManager= new FeedManager();
+			feedData = projectManager.GetCategories();
+			Gson gson = new Gson();
+			System.out.println(gson.toJson(feedData));
+			feed = gson.toJson(feedData);
+		}
+		catch (Exception e)
+		{
+			System.out.println("Exception Error"); //Console 
+		}
+		return feed;
+	}
+}
